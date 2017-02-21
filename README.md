@@ -6,7 +6,7 @@
 
 SICP的核心内容是什么呢？众说纷云，有人说是一本有关Lisp／Scheme的书主要讲函数式编程的思想，有的说是一本有关解释器构造的入门书籍，和我们学过的龙书挂钩，但就我个人而言，SICP作为一本入门书更多的不是担负起介绍某一方面具体的知识的重任，而是从多个角度去教一个初学者从程序抽象、理解工程架构、学习DSL的构建方法......，不单纯介绍一方面的知识而是完备的形成一个闭环的去像你介绍什么是Computer Science。相比于这些当初选用`MIT Scheme`现在使用`Python`，不过是最大程度上减小编程语言本身的复杂度对学生理解的影响，个人觉得无足挂怀。
 
-SICP的各个版本的封面，都选择了魔法师作为其中的主要素材，这里也作为我这个系列的名字，让我们一起领略魔法的SICP。
+SICP的各个版本的封面，都选择了魔法师作为其中的主要素材，这里也作为我这个系列的名字，让我们一起领略SICP的魔法。
 
 ## Feedback    
 Please send your feedback as long as there occurs any inconvenience or problem. You can contact me with:
