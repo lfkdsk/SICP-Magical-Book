@@ -12,11 +12,11 @@ SICP的各个版本的封面，都选择了魔法师作为其中的主要素材�
 Please send your feedback as long as there occurs any inconvenience or problem. You can contact me with:
 * Email: lfk_dsk@hotmail.com  
 * Weibo: [@亦狂亦侠_亦温文](http://www.weibo.com/u/2443510260)  
-* Blog:  [刘丰恺](http://www.cnblogs.com/lfk-dsk/)  
+* Blog:  [刘丰恺](https://lfkdsk.github.io/)  
 
 ## License
 
-    Copyright 2017 [刘丰恺](http://www.cnblogs.com/lfk-dsk/)
+    Copyright 2017 [刘丰恺](https://lfkdsk.github.io/)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
