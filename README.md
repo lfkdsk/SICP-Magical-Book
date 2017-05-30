@@ -8,6 +8,12 @@ SICP的核心内容是什么呢？众说纷云，有人说是一本有关Lisp／
 
 SICP的各个版本的封面，都选择了魔法师作为其中的主要素材，这里也作为我这个系列的名字，让我们一起领略SICP的魔法。
 
+## How to get？
+
+**GitBook** ：[MagicSICP](https://www.gitbook.com/book/lfkdsk/magicsicp/details)
+
+> GitBook 版本可提供在线预览和 pdf、epub、mobi 格式的下载
+
 ## Feedback    
 Please send your feedback as long as there occurs any inconvenience or problem. You can contact me with:
 * Email: lfk_dsk@hotmail.com  

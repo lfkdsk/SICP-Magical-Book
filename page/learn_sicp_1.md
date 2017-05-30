@@ -69,14 +69,16 @@ tags: SICP
 ### 树形结构
 
 说起树形结构我们先举一个例子，斐波那契数列：
-$$
-Fib(n) =
-        \begin{cases}
+$$  
+  
+Fib(n) =  
+        \begin{cases}  
         0,  & \text{n = 0 } \\\\ 
         n, & \text{n = 1} \\\\  
-        Fib(n-1) + Fib(n-2), & \text{others}  
+        Fib(n-1) + Fib(n-2), & \text{others}    
         \end{cases}
 $$
+
 这是斐波那契数列的规则定义，我们也经常用这个方式去使用递归编写代码，简单的写成 Scheme 的样子呢应该就是下面这个样子:
 
 ```lisp
