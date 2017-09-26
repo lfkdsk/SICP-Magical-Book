@@ -16,7 +16,7 @@ tags: SICP
 (define (sum-of-squares x y)  
 			(+ (square x) (square y)))
 ; sum-of-squares 求两个数的平方和
-(define (f x) (sum-of-squares (+ x 1) (+ x 2)))
+(define (f x) (sum-of-squares (+ x 1) (* x 2)))
 (f 5) 
 (sum-of-squares (+ 5 1) (* 5 2)) ; 注意这两行，首先算出来形参
 (+ (square 6) (square 10)) 
@@ -69,7 +69,7 @@ tags: SICP
 ### 树形结构
 
 说起树形结构我们先举一个例子，斐波那契数列：
-$$  
+$$
   
 Fib(n) =  
         \begin{cases}  
