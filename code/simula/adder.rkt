@@ -4,7 +4,7 @@
         (e (make-wire)))
     (or-gate a b d)
     (and-gate a b c)
-    (inverter c e)
+    (inverter-gate c e)
     (and-gate d e s)
     'ok))
 
