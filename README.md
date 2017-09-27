@@ -14,6 +14,16 @@ SICP的各个版本的封面，都选择了魔法师作为其中的主要素材�
 
 > GitBook 版本可提供在线预览和 pdf、epub、mobi 格式的下载
 
+## Chapters
+
+* [Scheme 基础和黑盒抽象](page/learn_sicp_0.md)
+* [过程的求值计算和高阶过程](page/learn_sicp_1.md)
+* [数据抽象、层次抽象](page/learn_sicp_2.md)
+* [符号演算和数据表示方法](page/learn_sicp_3.md)
+* [模块化、状态、环境](page/learn_sicp_4.md)
+* [实例:数字电路模拟](page/learn_sicp_5.md)
+
+
 ## Feedback    
 Please send your feedback as long as there occurs any inconvenience or problem. You can contact me with:
 * Email: lfk_dsk@hotmail.com  
