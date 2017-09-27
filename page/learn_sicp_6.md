@@ -39,4 +39,99 @@ tags: SICP
 
 #### 允许不互相干扰的并发
 
-书中提到了另一种控制方式，是对一种想法的一种改进，这时候我们允许对很多的不互相干扰的并发执行，但是对结果的要求仅仅期望与某种顺序的运行方式相同，这样会有另一个方面的问题，并发结果有很多种
+书中提到了另一种控制方式，是对一种想法的一种改进，这时候我们允许对很多的不互相干扰的并发执行，但是对结果的要求仅仅期望与某种顺序的运行方式相同，这样会有另一个方面的问题，并发结果有很多种，我们没办法对其结果进行预测。
+
+### 串行控制器
+
+串行化控制器的思路就是，程序可以并行执行，但是其中也有时序性的要求的部分，这部分无法并行执行程序的部分就靠一个控制器，将所有的执行过程通过一个集合控制起来，同一个时间段只会有一个过程在执行。最简单的应用我们可以借助共享变量去理解，同一个时间段可能有很多个进程在请求同一个资源，但是 *同时* 只能有一个进程能够获得这个资源，其余的将在等待队列中等待：
+
+![lock](learn-sicp-6/lock.png)
+
+通过对程序的分组的方式来禁止不正当的并发行为，并且可通过程序控制将某个方法设置为 **串行化** 的方法。
+
+我们引入一个内部方法 `make-serializer` 去提供这个是过程串行化的功能，`make-serializer`  接受一个过程作为参数返回同样行为的过程，参数与原过程保持一样，但保证其执行被串行化，我们可以继续使用之前的 `make-account` 的例子：
+
+``` lisp
+(define (make-account balance)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount)) balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+     balance)
+  ; 引入内部过程 make-serializer 
+  (let ((protected (make-serializer)))
+    (define (dispatch m)
+      (cond ((eq? m 'withdraw) (protected withdraw))
+            ((eq? m 'deposit) (protected deposit))
+            ((eq? m 'balance) balance)
+            (else (error "Unknown request -- MAKE-ACCOUNT" m))))
+    dispatch))
+```
+
+可以看出我们引入了内部过程，通过对每个向外暴露的方法包装一层方法。
+
+> Tips：
+>
+> 这里面可以类比 Java 中的 synchronized 和 Lock 机制，在实际的开发中使用 synchronized 设置为某个方法的关键字，这样我们对某个方法的封装就能让具体的处理业务 *互斥* 进行处理。
+
+#### 多重资源的复杂性
+
+我们考虑完单一资源的串行化操作之后来看一下涉及到多重资源的程序，比如刚才对 account 的操作，如果我们提供一个过程能够交换两个账户的金额（通过计算差值分别赋值给两个账户）：
+
+``` lisp
+(define (exchange account1 account2)
+  (let ((difference (- (account1 'balance) (account2 'balance))))
+    ((account1 'withdraw) difference)
+    ((account2 'deposit) difference)))
+```
+
+但是这就涉及到了另外一个问题，这个的操作确实能在对两个账户进行使用的时候保持并发正确，但是如果我们同时运行两个这个程序分别交换 `account1` 和 `account2` 以及 `account2` 和 `account3` 的时候，这时候情况就变得复杂了，account 的操作能保证串行化，但是 `exchange` 的程序还没有保证串行化。
+
+这时候我们就要改变 `exchange` 的串行租的策略，我们要是能够使用两个 account 的用户的串行组就能让 `exchange` 过程也并行正确，这里我们提取出了对应方法，把串行租从账户模块中暴露出来，这样就能在想加锁的时候用上锁了：
+
+``` lisp
+; 还是那段 make-account
+; ... 
+(let ((serializer (make-serializer)))
+    (define (dispatch m)
+      (cond ((eq? m 'withdraw) withdraw)
+            ((eq? m 'deposit) deposit)
+            ((eq? m 'balance) balance)
+        	((eq? m 'serializer) serializer)
+            (else (error "Unknown request -- MAKE-ACCOUNT" m))))
+    dispatch))
+; ...
+```
+
+我们可以看到我们在程序内部没有给操作的过程加锁，而是把锁暴露在了外面，这样我们对操作的定义可能需要一定的修改：
+
+``` lisp
+(define (deposit account amount)
+  (let ((s (account 'serializer)) 
+        (d (account 'deposit)))
+    ((s d) amount)))
+```
+
+我们的 `exchange` 的定义也可以用提取出来的串行控制器进行重构了：
+
+``` lisp
+(define (serialized-exchange account1 account2)
+  (let ((serializer1 (account1 'serializer))
+        (serializer2 (account2 'serializer)))
+    ((serializer1 (serializer2 exchange)) account1 account2)))
+```
+
+分别把两个串行控制器提取出来了，并且确信要拿到两道锁的 exchange 程序来操作两个账户。
+
+看起来我们实现了我们所需要的整个功能不是么？可是未必意识到了我们对这个程序都做了什么，首先我们来看修改版本的 **deposit** 程序，这个 deposit 明显已经不是 account 的一个内部方法了，这是在外面包裹了一层的一个新的方法，破坏了本身的模块和封装。
+
+而且在看我们对 **serializer** 的使用上来看，明显和上个原因相同以外，我们暴露的是对象所在的串行组，想想串行组是用来管理资源的，这个东西都暴露在了模块的外部，无论是使用还是管理起来都是特别不方便还容易出现危险。
+
+> Tips :
+>
+> 我们之前简单的描述过，可以把这里提到的串行控制器等价于我们在实际开发中使用的 **锁**，多种资源引来的复杂性实际上就是程序所使用的锁的数量不足，不能有效的管控所有的资源。而我们在程序的修改的结果其实就是拆解了模块，把我们的 **锁** 暴露在了外部，对于封装和安全的问题可想而知。
+
+#### 串行控制器的实现
+
