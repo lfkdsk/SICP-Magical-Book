@@ -135,3 +135,43 @@ tags: SICP
 
 #### 串行控制器的实现
 
+我们刚才在谈及串行控制器的实质上面，我们可以把它想象成一把锁和一个请求锁的等待队列，在书中的模拟中是使用了 **互斥量(mutex)** 这个更为细粒度的抽象数据实现的。
+
+互斥元是一个可以被获取、在使用之后被释放的数据抽象（类比锁实现），如果某个互斥元已经被获取，想获取该互斥元的其他操作需要等到该互斥元被释放（任何时候只有一个进程能拿到），来看 `make-serializer` 的实现过程：
+
+``` lisp
+(define (make-serializer)
+  ; 创建互斥元
+  (let ((mutex (make-mutex)))
+    (lambda (p)
+      (define (serialized-p .args)
+        ; 获取互斥元
+        (mutex 'acquire)
+        ; 执行 p 过程
+        (let ((val (apply p args)))
+             ; 释放互斥元
+          (mutex 'release)
+          val))
+      serialized-p)))
+```
+
+这就是我们之前生成串行控制器的过程，以一个过程作为参数，我们先对获取互斥元再执行完过程 `p` 然后再释放我们的互斥元。我们还需要一个生成互斥元的过程：
+
+``` lisp
+(define (make-mutex)
+  (let ((cell (list false)))
+    (define (the-mutex m)
+      (cond ((eq? m 'acquire)
+             (if (test-and-set! cell)
+                 (the-mutex 'acquire)))
+            ((eq? m 'release)
+             (set-car! cell false))))
+    the-mutex))
+```
+
+注意到互斥元的管理本身也是依赖一个变量来操作的，其中的 `test-and-set!` 检查参数的 car 值，如果参数的 car 值为假就在返回值前将其设为真值。
+
+`test-and-set!` 这个方法是生成互斥元的核心，这个操作需要以 **原子操作** 的方式执行，具体实现可能是一个特殊的硬件指令或者是系统提供的一个专门的过程。在单处理器程序中系统通过轮转时间片的方式为每一个可执行程序安排一段运行时间，多处理器机器中我们就必须通过硬件支持的专门指令。
+
+#### 死锁
+
