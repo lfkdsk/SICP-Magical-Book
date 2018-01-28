@@ -1,10 +1,10 @@
-![COVER](learn-sicp-0/cover.jpg)
-
 ---
 title: 0x00：SICP 的魔法 - Scheme 基础和黑盒抽象
 date: 2017-02-21 22:22:14
 tags: SICP
 ---
+
+![COVER](learn-sicp-0/cover.jpg)
 
 > 作者 ：[刘丰恺](https:;github.com/lfkdsk)
 >
