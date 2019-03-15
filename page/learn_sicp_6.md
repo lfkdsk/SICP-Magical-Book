@@ -197,6 +197,10 @@ tags: SICP
 
 而使用 **流** 来模拟采取了另一种方式来对状态随时间这个事实进行模拟，我们假设每一个状态 $x$ 都包含一个随时间进行改变状态的函数 $x(t)$ ，每一个时间片 $t$ 都对应着一个 $x$ 的具体状态，在这种角度来看虽然时间、状态仍然在进行着变化，但是 **由时间到状态的映射** $x(t)$ 本身是不变的。因此我们就可以不再只关注 $x$ 本身作为一个变化量的变化，但是从整个时间的流逝角度来看时间和状态的映射函数本身是不变的。
 
+> Tips：关于上面用 $x(t)$ 来解释流的原因
+>
+> SICP 用上述使用 $x(t)$ 的方式来解释 stream 的实质，其实不是在说 stream 是用来保存一个 state x 的变化过程 (随说可以提供这个功能，但是这个听起来很像是 state monad)，其实 stream 更像是一个 `operator` 的作用。
+
 如书中所说我们如果从离散步长的角度上来讲，流可以被看做一个无限长的序列，通过对不同时间阶段内容的取值，来模拟由时间到状态的映射。但是从实现的角度上来讲我们并不能为了实现流而构造一个无限长度的队列，因此引入一种延迟求值的技术来表示任意（以致无限长度的序列）。
 
 > 在[编程语言理论](https://zh.wikipedia.org/wiki/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80%E7%90%86%E8%AB%96)中，**惰性求值**（英语：Lazy Evaluation），又译为**惰性计算**、**懒惰求值**，也称为**传需求调用**（call-by-need），是一个[计算机编程](https://zh.wikipedia.org/wiki/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BC%96%E7%A8%8B)中的一个概念，它的目的是要最小化计算机要做的工作。它有两个相关而又有区别的含意，可以表示为“延迟求值”和“最小化求值”，惰性计算的最重要的好处是它可以构造一个无限的[数据类型](https://zh.wikipedia.org/wiki/%E6%95%B8%E6%93%9A%E9%A1%9E%E5%9E%8B)。
@@ -219,7 +223,25 @@ tags: SICP
   (expr))
 ```
 
+因此通过这样延时求值的定义我们能够做出之前我们无法实现的一些操作，比如书中的一个无限的正整数流：
 
+``` scheme
+; 1) 直接 cons 生成 stream
+(define (integers-starting-from n)
+  (cons-stream n (integers-starting-from (+ n 1))))
+(define integers (integers-starting-from 1))
+; 2) 隐式生成的 stream
+(define ones (cons-stream 1 ones))
+(define (add-streams s1 s2)
+  (stream-map + s1 s2))
+(define integers2 (cons-stream 1 (add-streams ones integers2)))
+```
+
+使计算过程中事件的 **实际发生顺序** 和 **过程表面结构** 之间的对应关系变得比较宽松，因此既能获得之前我们探索模块化获得的优势，又能在效率上有所提升。
+
+### 流计算的应用
+
+通过
 
 ## 总结
 
