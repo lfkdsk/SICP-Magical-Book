@@ -7,5 +7,6 @@
 * [符号演算和数据表示方法](page/learn_sicp_3.md)
 * [模块化、状态、环境](page/learn_sicp_4.md)
 * [实例:数字电路模拟](page/learn_sicp_5.md)
+* [并发和时间](page/learn_sicp_6.md)
 
 
