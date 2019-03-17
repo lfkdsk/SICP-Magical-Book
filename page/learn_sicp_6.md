@@ -241,8 +241,128 @@ tags: SICP
 
 ### 流计算的应用
 
-通过
+通过引入 `流` 这种编程概念对我们的编程方式有很大的补充能力，使用流式编程构造系统的时候本质上和使用状态和变量来构造系统有很大的区别。但其实更简单的理解方式还是可以从前几章我们所说的 `引用透明`，流的实质也不过是过程传递和延迟加载技术的综合。书中介绍的几个流计算的应用，包括引入迭代、无穷流和和之前呼应的表示信号。
+
+#### 将迭代操作表示为流操作
+
+``` scheme
+(define (sqrt-improve guess x) (average guess (/ x guess)))
+; 求一个数的平方根
+(define (sqrt-stream x)
+  (define guesses
+    (cons-stream 1.0
+                 (stream-map (lambda (guess) (sqrt-improve guess x))
+                             guesses)))
+; 打印出整个流
+(display-stream (sqrt-stream 2))
+```
+
+还有一个例子是通过交错级数不断地收敛来生成 $π$ 的近似值：
+$$
+\frac{π}{4} = 1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + .....
+$$
+
+``` scheme
+; 生成交错级数的流
+(define (pi-summands n)
+  (cons-stream (/ 1.0 n)
+               (stream-map - (pi-summands (+ n 2)))))
+; 部分前缀和 exercise 3.55 有提到
+(define (partial-sums s)
+  (cons-stream (stream-car s)
+               (add-streams (stream-cdr s)
+                            (partial-sums s))))
+; pi 的近似流
+(define pi-stream
+  (scale-stream (partial-sums (pi-summands 1)) 4))
+```
+
+> Tips :  流的加速收敛
+>
+> 书中包含了针对这个交错级数的加速方案 euler-transform：
+>
+> 加速的项目为：
+> $$
+> S{n+1} - \frac{(S{n+1} - S {n}) ^ 2}{S{n-1} - 2 S{n} + S{n+1}}
+> $$
+>
+> ```scheme
+> (define (euler-transform s)
+>   (let ((s0 (stream-ref s 0))     ; Sn₋₁
+>         (s1 (stream-ref s 1))     ; Sn
+>         (s2 (stream-ref s 2)))    ; Sn₊₁
+>     (cons-stream 
+>      (- s2 (/ (square (- s2 s1))
+>               (+ s0 (* -2 s1) s2)))
+>      (euler-transform (stream-cdr s)))))
+> ```
+
+#### 无穷序列
+
+![inf-pairs](learn-sicp-6/inf-pairs.png)
+
+``` scheme
+(define (pairs s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (⟨combine-in-some-way⟩
+    (stream-map (lambda (x) 
+                  (list (stream-car s) x))
+                (stream-cdr t))
+    (pairs (stream-cdr s)
+           (stream-cdr t)))))
+```
+
+尝试通过 stream 的方式去生成如上图所示的无穷序列，途中主要分成了三个区域，最左上角的初始序对，和右上角的 list ，还有就是右下角的部分。
+
+``` scheme
+; (S0, T0)
+(list (stream-car s) (stream-car t)) 
+; (S0, T1) , (S0, T2), (S0, T3) ,...
+(stream-map (lambda (x)  
+              (list (stream-car s) x))
+            (stream-cdr t))
+; 交错 items
+(pairs (stream-cdr s)
+       (stream-cdr t))
+```
+
+而其中比较重要的部分就是怎么组合两个 inf-stream 的，普通的 `stream-append` 肯定是不行的，因为这样会一直在求值第一个 stream ，这里使用了下述的方法来交错的使用 inf-stream：
+
+``` scheme
+(define (interleave s1 s2)
+  (if (stream-null? s1)
+      s2
+      (cons-stream 
+       (stream-car s1)
+       (interleave s2 (stream-cdr s1)))))
+```
+
+#### 将流作为信号
+
+前面以信号处理为背景讨论流问题。也可以用流建模信号处理过程，用流中元素表示一个信号在一系列顺序时间点上的值：
+$$
+S{i} = C + \sum_{j-1}^{i}x_{j}d{t}
+$$
+
+``` scheme
+(define (integral integrand initial-value dt)
+  (define int
+    (cons-stream 
+     initial-value
+     (add-streams (scale-stream integrand dt)
+                  int)))
+  int)
+```
+
+通过积分器的方式表示信号系统：
+
+![积分看做信号处理](learn-sicp-6/signal-stream.png)
+
+### 流计算的问题
+
+流的大量使用会导致系统之中有很多部分需要显示的使用 `delay` ，`force` 进行管理，一种解决办法就是把系统中的 `应用序` 求值全部换成 `正则序` 求值。这样的求值方式更加接近流的使用方式，统一了参数的求值逻辑。但是全部换成了 `正则序 ` 后可能真实的求值时间就不能够得到保障了，并且本身理解程序也会有一些困难，程序的语义也变得复杂起来了。书中的归并账号的问题也向我们揭示了另一个问题，在处理这种并发的约束条件的时候我们不能用分片、轮流的方式(这明显和实际情况不符)，因此还是要引入强制的同步。
 
 ## 总结
 
-对于赋值和状态的讨论是本章贯穿的内容，在本节中我们进一步揭示了复制的引入本质上是是对时间的依赖，赋值改变了变量的状态，从而改变了依赖于这些变量的表达式的计算。
+本章主要是在讨论有内部状态的对象，基于状态编程和模拟，我们提供了两种解决方案去表示对时间的模拟，但是都不能尽善尽美。首先是通过局部变量的模拟，对于赋值和状态的讨论是本章贯穿的内容，我们进一步揭示了赋值的引入本质上是是对时间的依赖，赋值改变了变量的状态，从而改变了依赖于这些变量的表达式的计算。具有变动状态的对象给程序带来了时间问题，程序本身也失去了引用透明性，并发会使得问题变得更加严重。引入流是作为一种替代技术，延时求值的序列是很强力模拟工具，能在一定范围内替代赋值的状态模拟。而状态变动、时间模拟、程序的非确定性这种本质性问题也很难有最优解存在。
