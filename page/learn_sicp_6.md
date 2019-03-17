@@ -1,5 +1,5 @@
 ---
-title: 0x06：SICP 的魔法 - 并发和时间
+title: 0x06：SICP 的魔法 - 并发、时间与流模拟
 date: 2017-09-27 10:16:16
 tags: SICP
 ---
