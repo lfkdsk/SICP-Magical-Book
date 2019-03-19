@@ -16,19 +16,71 @@ tags: SICP
 
 ## 元语言抽象
 
+这节之中我们会试着用 Scheme 来实现一个 Scheme 的解释器，用一种语言实现其自身的求值器，称为元循环（meta-circular）。这里我们可以复习一下 `3.2` 节之中出现的求值模型，其中的求值流程分成两步：
+
+1. 求值组合式（非特殊形式）时
+   - 先求值组合式的各子表达式
+   - 把运算符子表达式的值作用于运算对象子表达式的值
+2.  把复合过程应用于实参，是在一个新环境里求值过程体
+   - 新环境：过程对象（里环境指针指向）的环境加一个新框架
+   - 新框架里是过程的形参与对应实参的约束
+
+这两个步骤构成了 Scheme 求值的基本循环，这两个步骤也是能相互调用和递归 (自己递归或相互递归。求值的子表达式可能要应用复合过程，过程体本身通常又是组合式)，逐步规约到：
+
+- 符号 (从 env 里面取值）
+- 基本过程（直接调用基本过程的代码）
+- 值类型 (primary type 直接取值)
+
+以上的两个步骤可以被抽象为过程 eval 和 apply ，其中 eval 负责表达式的求值，apply 把一个过程对象应用于一组实际参数，这两者相互递归调用，eval 还有自递归。eval 和 apply 就像下图的这个像是太极图一样的图里，两者相互调用相互生成。
+
+![eval-apply](learn-sicp-7/eval-apply.png)
+
+#### 基础的递归解释器
+
+整个 `eval` 和 `apply` 的过程直接看代码实现就可以了，这里可以看到 `eval` 的过程就是接受一个表达式 exp 和一个环境变量 env ，根据表达式类型的不同进行分别处理。
+
+``` scheme
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)                      ; 基本表达式
+        ((variable? exp) (lookup-variable-value exp env)) ; 特殊形式
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ...                                               ; 组合形式
+         (else (error "Unknown expression type: EVAL" exp))))
+```
+
+根据 exp 分情况来处理的过程，里面大概有三种类型的处理：
+
+1. 基本表达式：包括能够自求值的表达式、变量
+2. 各种特殊表达式：if、quote、lambda、cond 里面还会涉及到和 env 操作的部分
+3. 过程结构：递归的对各个子表达式
 
 
-### 核心 eval & apply
 
 
 
-### 表达式表示
 
 
+这里用 `cond` 写了一个 `switch` 结构的过程，这对处理的逻辑顺序有很多的要求，不如使用数据分发的方式去
 
-### 数据结构和环境
-
-
+``` scheme
+(define (apply procedure arguments)
+  (cond ((primitive-procedure? procedure)
+         (apply-primitive-procedure 
+          procedure 
+          arguments))
+        ((compound-procedure? procedure)
+         (eval-sequence
+           (procedure-body procedure)
+           (extend-environment
+             (procedure-parameters 
+              procedure)
+             arguments
+             (procedure-environment 
+              procedure))))
+        (else (error "Unknown procedure type: APPLY" procedure))))
+```
 
 
 
