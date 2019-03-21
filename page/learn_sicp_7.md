@@ -206,9 +206,76 @@ tags: SICP
 
 ![factorial machine](learn-sicp-7/factorial.png)
 
-如果我们接受了这种设定，那我们就可以以更高维度的眼光来看我们上述的元循环求值器，如果 `factorial` 是一个特定的机器，那本身求值器就可以被认为是一台通用机器 (要素察觉)，
+如果我们接受了这种设定，那我们就可以以更高维度的眼光来看我们上述的元循环求值器。如果 `factorial` 是一个特定的机器，那本身求值器就可以被认为是一台通用机器 (要素察觉)，其输入不再是一个具体的内容而是另一台机器（程序）的描述，而功能则变成了对这个机器的模拟过程。
 
+![eval](learn-sicp-7/eval.png)
 
+这里我们意识到，我们上面的描述 "另一台机器" 并不准确，求值器是 Scheme 的一个 procedure ，因此求值器本身也可以描述自己。这也就是在书中元循环解释器为什么会被描述为编程语言和用户之间的桥梁，因为用户的输入本身成为了程序运行的一部分，现代的大多数语言也大多都实现了应用内的 `eval` 过程。
+
+其实在书中我们曾经提供以数据为程序的思想，当时的方式是把过程当成可传递的元素来处理，而现在我们能够提供更高层次的数据抽象 —— 抽象到语言。
+
+#### 图灵机
+
+我们在上文中提到了求值器本质上是一个 `"通用机器"` ，这种描述方式让人感觉似曾相识。按照我们上文讨论的说法，我们通过 Scheme 本身实现了一个 Scheme 的解释器，忽略时间和空间的角度上来讲一个解释器可以模拟任意的其他解释器。这样原则上可计算的概念向我们揭示了一个有关 `可计算性的` 全新的领域，图灵根据上文的相似思想给出了称为图灵机的计算模型，证明了计算机的可实现。
+
+图灵的基本思想是用机器来模拟人们用纸笔进行[数学](https://zh.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6)运算的过程，他把这样的过程看作下列两种简单的动作：
+
+- 在纸上写上或擦除某个符号；
+- 把注意力从纸的一个位置移动到另一个位置；
+
+而在每个阶段，人要决定下一步的动作，依赖于（a）此人当前所关注的纸上某个位置的符号和（b）此人当前思维的状态。
+
+![img](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Turing_machine_2a.gif/300px-Turing_machine_2a.gif)
+
+![img](https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Turing_machine_2b.gif/300px-Turing_machine_2b.gif)
+
+为了模拟人的这种运算过程，图灵构造出一台假想的机器，该机器由以下几个部分组成：
+
+1. 一条无限长的纸带**TAPE**。纸带被划分为一个接一个的小格子，每个格子上包含一个来自有限字母表的符号，字母表中有一个特殊的符号 ${\displaystyle \square } $ 表示空白。纸带上的格子从左到右依次被编号为0, 1, 2, ...，纸带的右端可以无限伸展。
+
+2. 一个读写头**HEAD**。该读写头可以在纸带上左右移动，它能读出当前所指的格子上的符号，并能改变当前格子上的符号。
+
+3. 一套控制规则
+
+   TABLE
+
+   。它根据当前机器所处的状态以及当前读写头所指的格子上的符号来确定读写头下一步的动作，并改变状态寄存器的值，令机器进入一个新的状态，按照以下顺序告知图灵机命令：
+
+   1. 写入（替换）或擦除当前符号；
+
+   2. 移动 **HEAD**， 'L'向左， 'R'向右或者'N'不移动；
+
+   3. 保持当前状态或者转到另一状态
+
+4. 一个**状态寄存器**。它用来保存图灵机当前所处的状态。图灵机的所有可能状态的数目是有限的，并且有一个特殊的状态，称为*停机状态*。
+
+注意这个机器的每一部分都是有限的，但它有一个潜在的无限长的纸带，因此这种机器只是一个理想的设备。图灵认为这样的一台机器就能模拟人类所能进行的任何计算过程。图灵机这样的定义在我们现在看来是显然的，基本上就是一个 `有限状态机`的通俗化描述，但是在计算机还未诞生的当时代表了一种伟大的思想性革命。
+
+结合上文，如果和我们使用的 Scheme 类比，每个 procedure 都能类比为一个特定的图灵机，那我们制作的 Scheme 解释器就可以类比于 `元图灵机(Universal Turing-Machine)` ，元图灵机以其他的图灵机作为输入能够模拟其他图灵机的行为，这也是为何我们说 `通用机器` 的描述不谋而合了。
+
+> Tips: 关于可计算性 (Computability) 
+>
+> 关于图灵机、可计算性相关的知识笔者也只有概念上的理解。涉及到具体知识的学习笔者在看 [CS121 Introduction to Theoretical Computer Science](https://introtcs.org/public/index.html) 这门入门课和 《Computability》这本书。
+
+#### 停机问题
+
+在上一节图灵机的描述里面我们提到了图灵机有一个特殊的停机问题，通俗地说，停机问题就是判断任意一个程序是否能在有限的时间之内结束运行的问题。该问题等价于如下的判定问题：是否存在一个程序P，对于任意输入的程序w，能够判断w会在有限时间内结束或者死循环。这个题目也出现在了书中的 4.15 题目之中：
+
+> **Exercise 4.15:** Given a one-argument procedure `p` and an object `a`, `p` is said to “halt” on `a` if evaluating the expression `(p a)`returns a value (as opposed to terminating with an error message or running forever). Show that it is impossible to write a procedure `halts?` that correctly determines whether `p` halts on `a` for any procedure `p` and object `a`. Use the following reasoning: If you had such a procedure `halts?`, you could implement the following program:
+
+``` scheme
+(define (run-forever)
+  (run-forever))
+
+(define (try p)
+  (if (halts? p p)
+    (run-forever)
+    'halted'))
+```
+
+这个 `halts` 肯定是找不到的，`try` 的实现本身就是 **交叉** 矛盾的，如果有 `(halts? p p )` 为 `True` 那就会 `run-forever` 持续运行下去，而如果 `(halts? p p)` 为 `False`，那么程序又会 `halted` 。因此我们能非常直观的从程序而非逻辑、数学的角度来发现这个问题。
+
+> Tips 其实图灵发现的这个奇怪的反证方法并不是靠灵光一闪，而是康托尔 [对角线方法](<https://zh.wikipedia.org/wiki/%E5%B0%8D%E8%A7%92%E8%AB%96%E8%AD%89%E6%B3%95>) 的一个实质的应用，读一下 《Gödel, Escher, Bach: An Eternal Golden Braid》 之中的相关章节，能获得更多的情报。
 
 
 
