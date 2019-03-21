@@ -8,5 +8,5 @@
 * [模块化、状态、环境](page/learn_sicp_4.md)
 * [实例:数字电路模拟](page/learn_sicp_5.md)
 * [并发、时间与流模拟](page/learn_sicp_6.md)
-
+* [元语言抽象](page/learn_sicp_7.md)
 

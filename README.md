@@ -23,7 +23,7 @@ SICP的各个版本的封面，都选择了魔法师作为其中的主要素材�
 * [模块化、状态、环境](page/learn_sicp_4.md)
 * [实例:数字电路模拟](page/learn_sicp_5.md)
 * [并发、时间与流模拟](page/learn_sicp_6.md)
-
+* [元语言抽象](page/learn_sicp_7.md)
 
 ## Feedback    
 Please send your feedback as long as there occurs any inconvenience or problem. You can contact me with:
