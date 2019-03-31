@@ -1,6 +1,6 @@
 _book/
 update.sh
-
+.vscode/
 
 # Created by https://www.gitignore.io/api/macos,racket,gitbook
 # Edit at https://www.gitignore.io/?templates=macos,racket,gitbook
